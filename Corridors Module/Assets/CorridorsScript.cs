@@ -62,7 +62,7 @@ public class CorridorsScript : MonoBehaviour {
         for (int i = 0; i < 3; i++)
         {
             int x = i;
-            Buttons[i].OnInteract += delegate { StartCoroutine(ButtonPress(x)); return false; };
+            Buttons[i].OnInteract += delegate { ButtonPress(x); return false; };
         }
         Calculate();
     }
@@ -114,18 +114,14 @@ public class CorridorsScript : MonoBehaviour {
         Debug.LogFormat("[Corridors #{0}] Ignoring the colour rule, the current corridor is {1}.", _moduleID, Corridors[Grid[int.Parse(CurrentNumber.ToString("00")[0].ToString()), int.Parse(CurrentNumber.ToString("00")[1].ToString())]].Join(", ").Replace('0', 'L').Replace('1', 'F').Replace('2', 'R'));
     }
 
-    private IEnumerator ButtonPress(int pos) //Warning: this code sucks.
+    private void ButtonPress(int pos) //Warning: this code sucks.
     {
         Buttons[pos].AddInteractionPunch();
         if (!Solved)
         {
             Audio.PlaySoundAtTransform("move", Buttons[pos].transform);
         }
-        for (int i = 0; i < 3; i++)
-        {
-            Buttons[pos].transform.localPosition -= new Vector3(0,0.002f,0);
-            yield return null;
-        }
+        StartCoroutine(ButtonMove(pos));
         if (!Solved)
         {
             if (pos == Corridors[Grid[int.Parse(CurrentNumber.ToString("00")[0].ToString()), int.Parse(CurrentNumber.ToString("00")[1].ToString())]][CurrentMove])
@@ -257,6 +253,15 @@ public class CorridorsScript : MonoBehaviour {
                 Calculate();
             }
         }
+    }
+
+    private IEnumerator ButtonMove(int pos)
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            Buttons[pos].transform.localPosition -= new Vector3(0, 0.002f, 0);
+            yield return null;
+        }
         for (int i = 0; i < 3; i++)
         {
             Buttons[pos].transform.localPosition += new Vector3(0, 0.002f, 0);
@@ -296,6 +301,7 @@ public class CorridorsScript : MonoBehaviour {
             }
             else
             {
+                yield return null;
                 if (CommandArray[i] == "l")
                     Buttons[0].OnInteract();
                 else if (CommandArray[i] == "f")
@@ -314,30 +320,16 @@ public class CorridorsScript : MonoBehaviour {
             switch(Corridors[Grid[int.Parse(CurrentNumber.ToString("00")[0].ToString()), int.Parse(CurrentNumber.ToString("00")[1].ToString())]][CurrentMove])
             {
                 case 0:
-                    yield return true;
                     Buttons[0].OnInteract();
-                    for (int i = 0; i < 4; i++)
-                    {
-                        yield return null;
-                    }
                     break;
                 case 1:
-                    yield return true;
                     Buttons[1].OnInteract();
-                    for (int i = 0; i < 4; i++)
-                    {
-                        yield return null;
-                    }
                     break;
                 default:
-                    yield return true;
                     Buttons[2].OnInteract();
-                    for (int i = 0; i < 4; i++)
-                    {
-                        yield return null;
-                    }
                     break;
             }
+            yield return new WaitForSeconds(0.1f);
         }
     }
     // You can't go back. Don't look back. It will kill you.
